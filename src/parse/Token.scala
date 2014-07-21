@@ -25,6 +25,8 @@ object OneOrMoreToken extends Token
 
 object OrToken extends Token
 
+object ConcatToken extends Token
+
 object LeftBracketToken extends Token
 
 object RightBracketToken extends Token
@@ -33,7 +35,7 @@ object Token {
   val symbols = Set('(', ')', '.', '?', '*', '+', '|')
 
   def tokenize(input: String) = {
-    val tokens = new mutable.ListBuffer[Token]
+    val tokens = new mutable.ArrayBuffer[Token]
     val symmetry = new mutable.Stack[Char]
     var index = 0
 
@@ -43,7 +45,7 @@ object Token {
         case '\\' =>
           val next = input(index + 1)
           if (symbols.contains(next)) {
-            tokens += CharToken(next)
+            addTokenMayNeedConcat(CharToken(next))
             index += 1
           } else {
             throw new SyntaxError(s"\\$next is not a valid escape sequence: $index")
@@ -51,7 +53,7 @@ object Token {
 
         case '(' =>
           symmetry.push(current)
-          tokens += LeftBracketToken
+          addTokenMayNeedConcat(LeftBracketToken)
 
         case ')' =>
           if (symmetry.nonEmpty && symmetry.pop == '(') {
@@ -68,11 +70,18 @@ object Token {
 
         case '|' => tokens += OrToken
 
-        case '.' => tokens += AnyCharToken
+        case '.' => addTokenMayNeedConcat(AnyCharToken)
 
-        case _ => tokens += CharToken(current)
+        case _ => addTokenMayNeedConcat(CharToken(current))
       }
       index += 1
+    }
+
+    def addTokenMayNeedConcat(t: Token) {
+      if (tokens.nonEmpty && tokens.last != LeftBracketToken && tokens.last != OrToken) {
+        tokens += ConcatToken
+      }
+      tokens += t
     }
 
     def handleRepetitionToken(index: Int, t: Token) {

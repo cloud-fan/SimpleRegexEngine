@@ -8,22 +8,24 @@ import scala.collection.mutable
 class NFA(root: AbstractNFAState) {
 
   def matches(target: String): Boolean = {
+    if (root == FinalNFAState) {
+      return true
+    }
     var currentStates = new mutable.HashSet[AbstractNFAState]
     currentStates += root
     var index = 0
-    var matches = false
-    while (index < target.size && !matches) {
+    while (index < target.size) {
       val nextStates = new mutable.HashSet[AbstractNFAState]
       for(s <- currentStates) {
         nextStates ++= s.getNextStates(target(index))
       }
       if (nextStates.contains(FinalNFAState)) {
-        matches = true
+        return true
       } else {
         currentStates = nextStates
         index += 1
       }
     }
-    matches
+    false
   }
 }

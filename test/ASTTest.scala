@@ -6,6 +6,6 @@ import parse.{Token, Parser}
 object ASTTest extends App {
   val regex = "a(b|c)"
   //val regex = "a(b|c)?a.y*\\.\\??"
-  val node = Parser.buildAST(Token.tokenize(regex))
+  val node = Parser.buildAST(Token.tokenize(regex)).get
   val breakpoint = 2 + 3
 }

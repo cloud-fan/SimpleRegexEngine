@@ -8,8 +8,6 @@ import scala.reflect.ClassTag
  */
 sealed trait ASTNode
 
-object EmptyNode extends ASTNode
-
 
 
 sealed trait CharNode extends ASTNode
@@ -20,46 +18,11 @@ case class ConditionCharNode(char: Char) extends CharNode
 
 
 
-sealed abstract class ParentNode extends ASTNode {
-  protected val _children = ListBuffer.empty[ASTNode]
-  def children = _children.toList
-}
+sealed abstract class BinaryNode(val left: ASTNode, val right: ASTNode) extends ASTNode
 
-class ConcatNode(node2: ASTNode, node1: ASTNode) extends ParentNode {
-  node1 match {
-    case n1: ConcatNode =>
-      _children ++= n1._children
-      node2 match {
-        case n2: ConcatNode => _children ++= n2._children
-        case n2 => _children += n2
-      }
+class ConcatNode(n1: ASTNode, n2: ASTNode) extends BinaryNode(n2, n1)
 
-    case n1 =>
-      _children += n1
-      node2 match {
-        case n2: ConcatNode => _children ++= n2._children
-        case n2 => _children += n2
-      }
-  }
-}
-
-class OrNode(node2: ASTNode, node1: ASTNode) extends ParentNode {
-  node1 match {
-    case n1: OrNode =>
-      _children ++= n1._children
-      node2 match {
-        case n2: OrNode => _children ++= n2._children
-        case n2 => _children += n2
-      }
-
-    case n1 =>
-      _children += n1
-      node2 match {
-        case n2: OrNode => _children ++= n2._children
-        case n2 => _children += n2
-      }
-  }
-}
+class OrNode(n1: ASTNode, n2: ASTNode) extends BinaryNode(n2, n1)
 
 
 

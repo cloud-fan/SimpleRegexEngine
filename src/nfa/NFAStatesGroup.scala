@@ -21,23 +21,15 @@ object NFAStatesGroup {
     NFAStatesGroup(start, end)
   }
 
-  def concat(groups: List[NFAStatesGroup]) = {
-    assert(groups.size > 1)
-    var previous = groups.head
-    for(g <- groups.drop(1)) {
-      previous.end.addTransition(EpsilonTransition(g.start))
-      previous = g
-    }
-    NFAStatesGroup(groups.head.start, groups.last.end)
+  def concat(left: NFAStatesGroup, right: NFAStatesGroup) = {
+    left.end.addTransition(EpsilonTransition(right.start))
+    NFAStatesGroup(left.start, right.end)
   }
 
-  def or(groups: List[NFAStatesGroup]) = {
-    assert(groups.size > 1)
-    for(g <- groups.drop(1)) {
-      groups.head.start.addTransition(EpsilonTransition(g.start))
-      g.end.addTransition(EpsilonTransition(groups.head.end))
-    }
-    groups.head
+  def or(left: NFAStatesGroup, right: NFAStatesGroup) = {
+    left.start.addTransition(EpsilonTransition(right.start))
+    right.end.addTransition(EpsilonTransition(left.end))
+    left
   }
 
   def zeroOrOne(group: NFAStatesGroup) = {
