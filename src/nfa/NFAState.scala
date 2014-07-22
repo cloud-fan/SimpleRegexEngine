@@ -7,11 +7,14 @@ import scala.collection.mutable.{ListBuffer, HashSet}
  */
 
 sealed trait AbstractNFAState {
-  def getNextStates(condition: Char): Set[AbstractNFAState]
+  def getNextStates(condition: Char): List[AbstractNFAState]
+
+  def getEpsilonStates: List[AbstractNFAState]
 }
 
 object FinalNFAState extends AbstractNFAState {
-  def getNextStates(condition: Char) = Set.empty[AbstractNFAState]
+  def getNextStates(condition: Char) = Nil
+  def getEpsilonStates = Nil
 }
 
 class NFAState extends AbstractNFAState {
@@ -54,21 +57,9 @@ class NFAState extends AbstractNFAState {
 
   def getNextStates(condition: Char) = {
     val result = new HashSet[AbstractNFAState]
-
-    val ep = getEpsilonStates
-    result ++= ep
-
-    val nextStages = (ep.collect{
-      case s: NFAState => s
-    }.flatMap(_.passableTransitions) ++ passableTransitions)
-    .filter(_.pass(condition)).map(_.target)
-    result ++= nextStages
-
-    result ++= nextStages.collect{
-      case s: NFAState => s
-    }.flatMap(_.getEpsilonStates)
-
-    result.toSet
+    val next = passableTransitions.filter(_.pass(condition)).map(_.target).toList
+    for (s <- next) result ++= s.getEpsilonStates
+    result.toList ++ next
   }
 
 }
